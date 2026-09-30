@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشاركة الموقع</title>
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 30px 15px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin-top: 0;
+        }
+        p {
+            color: #666;
+            line-height: 1.7;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: #1877f2;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+        }
+        #status {
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        #map {
+            height: 400px;
+            margin-top: 20px;
+            border-radius: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>📍 مشاركة الموقع</h1>
+        <p>
+            اضغط على الزر للسماح بالوصول إلى موقع جهازك.
+        </p>
+        <button onclick="getLocation()">
+            السماح بالموقع
+        </button>
+        <div id="status"></div>
+        <div id="map"></div>
+    </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let map;
+let marker;
+function getLocation() {
+    const status = document.getElementById("status");
+    if (!navigator.geolocation) {
+        status.innerHTML = "❌ المتصفح لا يدعم تحديد الموقع.";
+        return;
+    }
+    status.innerHTML = "📍 جاري تحديد موقعك...";
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            status.innerHTML = "✅ تم تحديد موقعك بنجاح";
+            showMap(latitude, longitude);
+        },
+        function(error) {
+            if (error.code === 1) {
+                status.innerHTML =
+                    "❌ تم رفض إذن الموقع.";
+            } 
+            else if (error.code === 2) {
+                status.innerHTML =
+                    "❌ تعذر تحديد موقعك.";
+            } 
+            else {
+                status.innerHTML =
+                    "❌ حدث خطأ أثناء تحديد الموقع.";
+            }
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        }
+    );
+}
+function showMap(latitude, longitude) {
+    document.getElementById("map").style.display = "block";
+    if (!map) {
+        map = L.map("map").setView(
+            [latitude, longitude],
+            16
+        );
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap"
+            }
+        ).addTo(map);
+    } else {
+        map.setView(
+            [latitude, longitude],
+            16
+        );
+    }
+    if (marker) {
+        marker.setLatLng([
+            latitude,
+            longitude
+        ]);
+    } else {
+        marker = L.marker([
+            latitude,
+            longitude
+        ]).addTo(map);
+    }
+    marker.bindPopup(
+        "📍 موقعك الحالي"
+    ).openPopup();
+}
+</script>
+</body>
+</html>
